@@ -1,0 +1,46 @@
+name: Convert PDF to PNG and Commit
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch (or whichever branch you prefer)
+  pull_request:
+    branches:
+      - main  # Trigger on PR targeting the main branch
+
+jobs:
+  pdf_to_png:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the code in the repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9  # Set Python version as needed
+
+      # Install required dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils  # Required by pdf2image
+          python -m pip install --upgrade pip
+          pip install pdf2image
+
+      # Run the PDF to PNG conversion script
+      - name: Convert PDF to PNG
+        run: |
+          python pdf_to_png.py path/to/your/pdf.pdf output_folder
+
+      # Add generated PNG files to Git and commit them
+      - name: Commit PNG files
+        run: |
+          git add output_folder/
+          git commit -m "Add converted PNG images"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
